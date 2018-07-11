@@ -17,6 +17,7 @@ class DBType(str):
             self.params = params
         else:
             self = super().__new__(cls, value)
+            self.params = []
         self.db_type = value
         return self
 
