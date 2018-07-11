@@ -75,3 +75,48 @@ class EnumFieldTest(FieldTestCase):
         choices = field.get_choices(blank_choice=BLANK_CHOICE_DASH)
         expected = BLANK_CHOICE_DASH + [(str(em), em.value) for em in members]
         self.assertEqual(choices, expected)
+
+    def test_default_stringify(self):
+        """
+        Tests that the default value is converted to string when an Enum member is passed as the default.
+        """
+        field = EnumField(TestEnum, default=TestEnum.VAL2)
+        self.assertEqual(field.default, TestEnum.VAL2.value)
+
+    def test_clone_default(self):
+        """
+        Tests that the default value is not lost when cloning the field.
+        """
+        field = EnumField(TestEnum, default=TestEnum.VAL2.value)
+        cloned_field = field.clone()
+        self.assertEqual(cloned_field.default, TestEnum.VAL2.value)
+
+    def test_clone_choices(self):
+        """
+        Tests that the choices list is not lost when cloning the field.
+        """
+        members = [TestEnum.VAL1, TestEnum.VAL2]
+        field = EnumField(TestEnum, choices=members)
+        cloned_field = field.clone()
+        expected = [(str(em), em.value) for em in members]
+        self.assertEqual(cloned_field.choices, expected)
+
+    def test_deconstruct_manual_choices_without_enum(self):
+        """
+        Tests that the choices list is not lost when deconstructing a field that is not bound to an enum. This occurs
+        when the schema is reconstructed from migrations and losing the value might cause the field to be marked
+        as updated even when there is no change.
+        """
+        choices_list = [('VAL1', 'Value 1'), ('VAL2', 'Value 2')]
+        field = EnumField(choices=choices_list)
+        name, path, args, kwargs = field.deconstruct()
+        expected_kwargs = {'choices': choices_list}
+        self.assertEqual(kwargs, expected_kwargs)
+
+    def test_clone_type_def(self):
+        """
+        Tests that the type def field is cloned properly when cloning the field.
+        """
+        field = EnumField(TestEnum)
+        cloned_field = field.clone()
+        self.assertEqual(cloned_field.type_def, TestEnum)
