@@ -39,9 +39,9 @@ class EnumField(CustomTypeField):
     def __init__(self, enum=None, case_sensitive=None, default=None, *args, **kwargs):
         if 'choices' in kwargs:
             self.manual_choices = kwargs.pop('choices')
-        if default and enum:
-            # Stringify default
-            kwargs['default'] = default.value if isinstance(default, enum) else default
+        if default:
+            # Stringify default value. If no enum is present, default value is used as-is.
+            kwargs['default'] = default.value if enum and isinstance(default, enum) else default
         super().__init__(*args, **kwargs)
         if enum:
             self.type_def = enum
@@ -65,6 +65,10 @@ class EnumField(CustomTypeField):
         name, path, args, kwargs = super().deconstruct()
         if not self.manual_choices and 'choices' in kwargs:
             del kwargs['choices']
+        # Use manual_choices field when no choices are present. The choices are initialized only when the instance
+        # is initialized with enum reference, which caused problems in migrations.
+        elif self.type_def is None and self.manual_choices and 'choices' not in kwargs:
+            kwargs['choices'] = list(self.manual_choices)
         if self.case_sensitive is not None:
             kwargs['case_sensitive'] = self.case_sensitive
         return name, path, args, kwargs
