@@ -93,10 +93,12 @@ class MigrationAutodetector:
         to_enum_types = set(db_type for db_type, e in self.to_state.db_types.items() if issubclass(e, Enum))
 
         # Look for renamed enums
-        new_enum_sets = {k: self.to_state.db_types[k].values_set() for k in to_enum_types - from_enum_types}
-        old_enum_sets = {k: self.from_state.db_types[k].values_set() for k in from_enum_types - to_enum_types}
-        for db_type, enum_set in list(new_enum_sets.items()):
-            for rem_db_type, rem_enum_set in old_enum_sets.items():
+        new_enum_sets = {k: self.to_state.db_types[k] for k in to_enum_types - from_enum_types}
+        old_enum_sets = {k: self.from_state.db_types[k] for k in from_enum_types - to_enum_types}
+        for db_type, enum in list(new_enum_sets.items()):
+            enum_set = enum.values_set()
+            for rem_db_type, rem_enum in old_enum_sets.items():
+                rem_enum_set = rem_enum.values_set()
                 # Compare only the values
                 if enum_set == rem_enum_set:
                     if self.questioner.ask_rename_enum(db_type, rem_db_type, enum_set):
@@ -109,10 +111,10 @@ class MigrationAutodetector:
                     break
 
         # Create new enums
-        for db_type, values in new_enum_sets.items():
+        for db_type, enum in new_enum_sets.items():
             self.add_operation(
                 self.to_state.db_types[db_type].Meta.app_label,
-                CreateEnum(db_type=db_type, values=list(values)),
+                CreateEnum(db_type=db_type, values=enum.values()),
                 beginning=True)
 
         # Remove old enums
