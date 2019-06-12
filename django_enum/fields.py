@@ -148,7 +148,7 @@ class EnumField(CustomTypeField):
 
         if self.manual_choices:
             # If restricted choices, check against them
-            if any(str(value) == option for option, v in self.flat_choices_iter()):
+            if any((str(value) == option or value == option) for option, v in self.flat_choices_iter()):
                 return
         elif isinstance(value, self.type_def):
             return
