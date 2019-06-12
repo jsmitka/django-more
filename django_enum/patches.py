@@ -74,7 +74,7 @@ class PostgresDatabaseSchemaEditor:
     sql_delete_enum = 'DROP TYPE %(enum_type)s'
     # ALTER TYPE for schema changes. pg9.1+ only
     # https://www.postgresql.org/docs/9.1/static/sql-altertype.html
-    sql_alter_enum = 'ALTER TYPE %(enum_type)s ADD VALUE %(value)s %(condition)s'
+    sql_alter_enum = 'ALTER TYPE %(enum_type)s ADD VALUE %(value)s'
     sql_rename_enum = 'ALTER TYPE %(old_type)s RENAME TO %(enum_type)s'
     # remove_from_enum is not supported by poostgres
 
